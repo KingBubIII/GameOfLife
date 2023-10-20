@@ -11,12 +11,16 @@ if __name__ == '__main__':
     # creates turtle drawing object and attaches to current screen object
     pen = Turtle()
     # setting defaults for turtle drawing object
-    pen.hideturtle()
+    # pen.hideturtle()
     pen.setheading(90)
     pen.pendown()
     pen.pencolor('black')
 
     sim = SIMULATION()
-    sim.update_grid(canvas)
+    sim.redraw_grid(canvas)
+
+    me = USER(canvas, sim)
+
+    canvas.onclick(me.create_life)
 
     canvas.mainloop()
