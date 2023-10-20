@@ -17,6 +17,6 @@ if __name__ == '__main__':
     pen.pencolor('black')
 
     sim = SIMULATION()
-    sim.update_grid(pen)
+    sim.update_grid(canvas)
 
     canvas.mainloop()

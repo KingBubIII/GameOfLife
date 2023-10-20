@@ -45,8 +45,11 @@ class SIMULATION():
         return temp_grid
     
     # updating grid includes determining alive status and redrawing cell
-    def update_grid(self, pen):
+    def update_grid(self, canvas):
+        pen = canvas.turtles()[0]
         for row in self.grid:
             for cell in row:
                 print(cell.start_x, cell.start_y)
                 cell.draw(pen)
+
+        canvas.update()
