@@ -17,7 +17,9 @@ if __name__ == '__main__':
     pen.pencolor('black')
 
     sim = SIMULATION()
-    sim.redraw_grid(canvas)
+    sim.redrawGrid(canvas)
+    canvas.listen()
+    canvas.onkey(sim.iterateGeneration, "a")
 
     me = USER(canvas, sim)
 

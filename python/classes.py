@@ -29,10 +29,10 @@ class CELL():
 class SIMULATION():
     def __init__(self) -> None:
         self.cell_size = 25
-        self.grid = self.create_grid(25, 25)
+        self.grid = self.createGrid(4, 4)
     
     # creates simulation map empty of any live cells for user input later
-    def create_grid(self, x, y):
+    def createGrid(self, x, y):
         temp_grid = []
         for i in range(y):
             
@@ -46,13 +46,46 @@ class SIMULATION():
         return temp_grid
     
     # updating grid includes determining alive status and redrawing cell
-    def redraw_grid(self, canvas):
+    def redrawGrid(self, canvas):
         pen = canvas.turtles()[0]
         for row in self.grid:
             for cell in row:
                 cell.draw(pen)
 
+        # manual updating of canvas to ensure last object draw is rendered for user
         canvas.update()
+
+    
+    def neighborCount(self, row, col):
+        neighbors = 0
+        grid_rows = len(self.grid)
+        grid_cols = len(self.grid[0])
+
+        for row_shift in range(-1,2,1):
+            for col_shift in range(-1,2,1):
+                # avoid counting itself in the neightbors
+                if row_shift==0 and col_shift==0:
+                    continue
+                    
+                # all "neightbors" outside of the grid are skipped
+                neighbor_row = row+row_shift
+                neighbor_col = col+col_shift
+                
+                # avoid literal corner/ edge cases by ignoring "cells" outside grid
+                if (neighbor_row >= grid_rows or neighbor_row < 0) or (neighbor_col >= grid_cols or neighbor_col < 0):
+                    continue
+                elif self.grid[neighbor_row][neighbor_col].alive:
+                    neighbors +=1
+
+        return neighbors
+
+    
+    def iterateGeneration(self):
+        temp_grid = self.grid
+        for row_count, row in enumerate(self.grid):
+            for col_count, cell in enumerate(row):
+                print( self.neighborCount(row_count, col_count) )
+
 
 # a class that handles all events done by user
 # IE: setting up alives cells for simulation or starting the simulation/ stepping through simulation
