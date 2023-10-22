@@ -55,7 +55,7 @@ class SIMULATION():
         # manual updating of canvas to ensure last object draw is rendered for user
         canvas.update()
 
-    
+    # checks for all neighboring alive cells
     def neighborCount(self, row, col):
         neighbors = 0
         grid_rows = len(self.grid)
@@ -81,7 +81,7 @@ class SIMULATION():
 
         return neighbors
 
-    
+    # applies Conway's Game of Life rule set to current grid
     def iterateGeneration(self):
         temp_grid = self.createGrid(25, 25)
         for row_count, row in enumerate(self.grid):
@@ -107,24 +107,27 @@ class SIMULATION():
 class USER():
     def __init__(self, canvas, sim_class) -> None:
         self.canvas = canvas
+        self.pen = self.canvas.turtles()[0]
         self.sim_class = sim_class
 
         self.assignUserActions()
 
-    # this is for toggling cells alive
-    def create_life(self, raw_x, raw_y) -> None:
-        pen = self.canvas.turtles()[0]
-
+    # this is for setting cells alive or dead
+    def setLifeStatus(self, raw_x, raw_y, life_status) -> None:
+        # gets grid x and y by mouse position
         grid_x, grid_y = int(raw_y//self.sim_class.cell_size), int(raw_x//self.sim_class.cell_size)
         
         cell = self.sim_class.grid[grid_x][grid_y]
-        cell.alive = True
-        cell.draw(pen)
+        cell.alive = life_status
+        # redraw with correct color indicating life status
+        cell.draw(self.pen)
 
+    # inits all actions user can take and sets up turtle to listen for them
     def assignUserActions(self):
         self.canvas.listen()
         self.canvas.onkey(self.nextGeneration, "space")
-        self.canvas.onclick(self.create_life)
+        self.canvas.onclick(lambda raw_x, raw_y: self.setLifeStatus(raw_x, raw_y, True), 1)
+        self.canvas.onclick(lambda raw_x, raw_y: self.setLifeStatus(raw_x, raw_y, False), 3)
 
     def nextGeneration(self):
         self.sim_class.iterateGeneration()
