@@ -20,5 +20,6 @@ if __name__ == '__main__':
     sim.redrawGrid(canvas)
 
     me = USER(canvas, sim)
+    me.drawInstructions()
 
     canvas.mainloop()

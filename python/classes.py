@@ -29,7 +29,8 @@ class CELL():
 class SIMULATION():
     def __init__(self) -> None:
         self.cell_size = 25
-        self.grid = self.createGrid(25, 25)
+        self.grid_size = (25, 25)
+        self.grid = self.createGrid(*self.grid_size)
     
     # creates simulation map empty of any live cells for user input later
     def createGrid(self, x, y):
@@ -83,7 +84,7 @@ class SIMULATION():
 
     # applies Conway's Game of Life rule set to current grid
     def iterateGeneration(self):
-        temp_grid = self.createGrid(25, 25)
+        temp_grid = self.createGrid(*self.grid_size)
         for row_count, row in enumerate(self.grid):
             for col_count, cell in enumerate(row):
                 neighbors = self.neighborCount(row_count, col_count)
@@ -111,6 +112,23 @@ class USER():
         self.sim_class = sim_class
 
         self.assignUserActions()
+
+    def drawInstructions(self):
+        self.pen.penup()
+        self.pen.goto(650, 150)
+        instructions = """
+            1 key: Step to next generation
+            
+            2 key: Start generating continuously
+            
+            3 key: Stop generating continuously
+            
+            Left mouse click: Create cell life
+            
+            Right mouse click: Destroy cell life
+            """        
+        
+        self.pen.write(instructions, font=('Arial', 8, 'normal'))
 
     # this is for setting cells alive or dead
     def setLifeStatus(self, raw_x, raw_y, life_status) -> None:
