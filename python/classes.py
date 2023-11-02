@@ -100,7 +100,6 @@ class SIMULATION():
                     temp_grid[row_count][col_count].alive = cell.alive
         
         self.grid = temp_grid
-        temp_grid = None
         return
 
 
@@ -114,6 +113,7 @@ class USER():
         self.continous = False
 
         self.assignUserActions()
+        canvas.ontimer(self.nextGeneration,1000)
 
     def drawInstructions(self):
         self.pen.penup()
@@ -145,18 +145,22 @@ class USER():
     # inits all actions user can take and sets up turtle to listen for them
     def assignUserActions(self):
         self.canvas.listen()
-        self.canvas.onkey(self.nextGeneration, "1")
+        # self.canvas.onkey(self.nextGeneration, "1")
         self.canvas.onkey(self.toggleContinous, "2")
         self.canvas.onclick(lambda raw_x, raw_y: self.setLifeStatus(raw_x, raw_y, True), 1)
         self.canvas.onclick(lambda raw_x, raw_y: self.setLifeStatus(raw_x, raw_y, False), 3)
 
     def nextGeneration(self):
+        if not self.continous:
+            self.canvas.ontimer(self.nextGeneration,0)
+            return
+        
         self.sim_class.iterateGeneration()
         self.sim_class.redrawGrid(self.canvas)
-
-        if self.continous:
-            self.canvas.ontimer(self.nextGeneration(), 100)
+        self.canvas.update()
+        self.canvas.ontimer(self.nextGeneration,0)
+        print('after')
         
     def toggleContinous(self):
         self.continous = not self.continous
-        self.nextGeneration()
+        # self.nextGeneration()
