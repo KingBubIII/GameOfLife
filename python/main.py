@@ -1,35 +1,24 @@
-from turtle import Turtle, Screen
-from random import random
+import pygame
 
-def draw(x, y, aliveStatus, size, pen):
-    pen.penup()
-    start_x, start_y = x*size, y*size
-    pen.goto(x=start_x, y=start_y)
-    pen.pendown()
-    if aliveStatus:
-        pen.fillcolor("green")
-    else:
-        pen.fillcolor("white")
-    pen.begin_fill()
-    pen.goto(x=start_x, y=start_y+size)
-    pen.goto(x=start_x+size, y=start_y+size)
-    pen.goto(x=start_x+size, y=start_y)
-    pen.goto(x=start_x, y=start_y)
-    pen.end_fill()
+def draw(screen, color, pos_info):
+    pygame.draw.rect(screen, color, pos_info)
+    pygame.draw.rect(screen, (0,0,0), pos_info, 1)
 
 # creates simulation map empty of any live cells for user input later
 def createGrid(x, y):
     return [[0 for j in range(x)] for i in range(y)]
 
 # updating grid includes determining alive status and redrawing cell
-def redrawGrid(canvas, grid, cell_size):
-    pen = canvas.turtles()[0]
+def redrawGrid(screen, grid, cell_size):
     for row in range(len(grid)):
         for x in range(len(grid[0])):
-            draw(x, row, grid[row][x], cell_size, pen)
-
-    # manual updating of canvas to ensure last object draw is rendered for user
-    canvas.update()
+            start_x, start_y = x*cell_size, row*cell_size
+            if grid[row][x]:
+                color = (0, 255, 0)
+            else:
+                color = (255, 255, 255)
+            draw(screen, color, (start_x, start_y, cell_size, cell_size))
+            
 
 # checks for all neighboring alive cells
 def neighborCount(grid, row, col):
@@ -59,7 +48,7 @@ def neighborCount(grid, row, col):
 
 # applies Conway's Game of Life rule set to current grid
 def iterateGeneration(grid):
-    temp_grid = createGrid(3,3)
+    temp_grid = createGrid(len(grid),len(grid[0]))
     for row_count, row in enumerate(grid):
         for col_count, cell in enumerate(row):
             neighbors = neighborCount(grid, row_count, col_count)
@@ -101,44 +90,52 @@ def setLifeStatus(raw_x, raw_y, grid, pen, life_status, cell_size) -> None:
     grid[grid_y][grid_x] = life_status
 
     # redraw with correct color indicating life status
-    draw(grid_x, grid_y, life_status, 25, pen)
-
-# inits all actions user can take and sets up turtle to listen for them
-def assignUserActions(grid, canvas, continous):
-    pen = canvas.turtles()[0]
-    canvas.listen()
-    canvas.onkey(lambda: nextGeneration(grid, canvas, continous), "1")
-    canvas.onkey(toggleContinous, "2")
-    canvas.onclick(lambda raw_x, raw_y: setLifeStatus(raw_x, raw_y, grid, pen, True, 25), 1)
-    canvas.onclick(lambda raw_x, raw_y: setLifeStatus(raw_x, raw_y, grid, pen, False, 25), 3)
-
-def nextGeneration(grid, canvas, continous=False):
-    iterateGeneration(grid)
-    redrawGrid(canvas, grid, 25)
-    canvas.update()
-    
-def toggleContinous():
-    continous = not continous
-    # nextGeneration()
+    draw(grid_x, grid_y, life_status, 25)
 
 if __name__ == '__main__':
-    # inits turtle screen object to draw on
-    canvas = Screen()
-    canvas.setworldcoordinates(0, canvas.window_height(), canvas.window_width(), 0)
-    canvas.tracer(0)
-    
-    # creates turtle drawing object and attaches to current screen object
-    pen = Turtle()
-    # setting defaults for turtle drawing object
-    pen.hideturtle()
-    pen.setheading(90)
-    pen.pendown()
-    pen.pencolor('black')
-
+    grid_size = (25,25)
+    cell_size = 25
+    # inits what to draw on
+    screen = pygame.display.set_mode((grid_size[0]*cell_size, grid_size[1]*cell_size))
+    # inits control booleans
     continous = False
-    grid = createGrid(3,3)
-    redrawGrid(canvas, grid, 25)
-    drawInstructions(canvas)
-    assignUserActions(grid, canvas, False)
+    step = True
+    # inits grid that tracks current generation 
+    true_grid = createGrid(25,25)
 
-    canvas.mainloop()
+    while True:
+        # checks for user inputs to modify control booleans
+        for event in pygame.event.get():
+            # exit condition
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            # generation controls
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    step = True
+                elif event.key == pygame.K_2:
+                    continous = not continous
+            # user input for birthing/ killing cells
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    raw_x, raw_y = event.pos
+                    start_x, start_y = int(raw_x//cell_size), int(raw_y//cell_size)
+                    true_grid[start_y][start_x] = True
+                    draw(screen, (0,255,0), (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
+                elif event.button == 3:
+                    raw_x, raw_y = event.pos
+                    start_x, start_y = int(raw_x//cell_size), int(raw_y//cell_size)
+                    true_grid[start_y][start_x] = False
+                    draw(screen, (255,255,255), (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
+
+        if step or continous:
+            screen.fill((100, 100, 100))
+            iterateGeneration(true_grid)
+            redrawGrid(screen, true_grid, cell_size)
+            step = False
+            pygame.time.delay(500)
+
+        pygame.display.update()
+        
+
+    # assignUserActions(grid, canvas, False)
