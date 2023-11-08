@@ -48,7 +48,7 @@ def neighborCount(grid, row, col):
 
 # applies Conway's Game of Life rule set to current grid
 def iterateGeneration(grid):
-    temp_grid = createGrid(len(grid),len(grid[0]))
+    temp_grid = createGrid(len(grid[0]),len(grid))
     for row_count, row in enumerate(grid):
         for col_count, cell in enumerate(row):
             neighbors = neighborCount(grid, row_count, col_count)
@@ -93,7 +93,7 @@ def setLifeStatus(raw_x, raw_y, grid, pen, life_status, cell_size) -> None:
     draw(grid_x, grid_y, life_status, 25)
 
 if __name__ == '__main__':
-    grid_size = (25,25)
+    grid_size = (50,25)
     cell_size = 25
     # inits what to draw on
     screen = pygame.display.set_mode((grid_size[0]*cell_size, grid_size[1]*cell_size))
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     continous = False
     step = True
     # inits grid that tracks current generation 
-    true_grid = createGrid(25,25)
+    true_grid = createGrid(*grid_size)
 
     while True:
         # checks for user inputs to modify control booleans
