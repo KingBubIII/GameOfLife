@@ -14,7 +14,7 @@ def redrawGrid(screen, grid, cell_size):
         for x in range(len(grid[0])):
             start_x, start_y = x*cell_size, row*cell_size
             if grid[row][x]:
-                color = (0, 255, 0)
+                color = grid[row][x]
             else:
                 color = (255, 255, 255)
             draw(screen, color, (start_x, start_y, cell_size, cell_size))
@@ -25,6 +25,8 @@ def neighborCount(grid, row, col):
     neighbors = 0
     grid_rows = len(grid)
     grid_cols = len(grid[0])
+    avg_color = (0,0,0)
+    neighbor_colors = list()
 
     for row_shift in range(-1,2,1):
         neighbor_row = row+row_shift
@@ -41,21 +43,39 @@ def neighborCount(grid, row, col):
                 # avoid current cell counting it in the neightbors
                 if row_shift==0 and col_shift==0:
                     continue
-                
+                neighbor_colors.append(grid[neighbor_row][neighbor_col])
                 neighbors +=1
 
-    return neighbors
+    if neighbors > 0:
+        red_percent, green_percent, blue_percent = 0,0,0
+
+        for neighbor in neighbor_colors:
+            red_percent += neighbor[0]
+            green_percent += neighbor[1]
+            blue_percent += neighbor[2]
+        
+        red_percent = red_percent/neighbors
+        green_percent = green_percent/neighbors
+        blue_percent = blue_percent/neighbors
+        
+        avg_color = (red_percent, green_percent, blue_percent)
+
+    if avg_color == (0,0,0):
+        avg_color = 0
+        
+
+    return neighbors, avg_color
 
 # applies Conway's Game of Life rule set to current grid
 def iterateGeneration(grid):
     temp_grid = createGrid(len(grid[0]),len(grid))
     for row_count, row in enumerate(grid):
         for col_count, cell in enumerate(row):
-            neighbors = neighborCount(grid, row_count, col_count)
+            neighbors, avg_color = neighborCount(grid, row_count, col_count)
             
             # birth rule
             if neighbors == 3:
-                temp_grid[row_count][col_count] = True
+                temp_grid[row_count][col_count] = avg_color
             # death rule
             elif neighbors <= 1 or neighbors >= 4:
                 temp_grid[row_count][col_count] = False
@@ -64,23 +84,21 @@ def iterateGeneration(grid):
                 temp_grid[row_count][col_count] = cell
     grid[:] = temp_grid
     
-def drawInstructions(canvas):
-        pen = canvas.turtles()[0]
-        pen.penup()
-        pen.goto(650, 150)
-        instructions = """
-            1 key: Step to next generation
-            
-            2 key: Start generating continuously
-            
-            3 key: Stop generating continuously
-            
-            Left mouse click: Create cell life
-            
-            Right mouse click: Destroy cell life
-            """        
-        
-        pen.write(instructions, font=('Arial', 8, 'normal'))
+def totalPercentages(grid):
+        red = 0
+        green = 0
+        blue = 0
+
+        for row in grid:
+            for cell in row:
+                if cell:
+                    red += cell[0]
+                    green += cell[1]
+                    blue += cell[2]
+
+        print(red)
+        print(green)
+        print(blue)
 
 # this is for setting cells alive or dead
 def setLifeStatus(raw_x, raw_y, grid, pen, life_status, cell_size) -> None:
@@ -93,7 +111,7 @@ def setLifeStatus(raw_x, raw_y, grid, pen, life_status, cell_size) -> None:
     draw(grid_x, grid_y, life_status, 25)
 
 if __name__ == '__main__':
-    grid_size = (50,25)
+    grid_size = (50,50)
     cell_size = 25
     # inits what to draw on
     screen = pygame.display.set_mode((grid_size[0]*cell_size, grid_size[1]*cell_size))
@@ -103,14 +121,12 @@ if __name__ == '__main__':
     # inits grid that tracks current generation 
     true_grid = createGrid(*grid_size)
 
-    while True:
+    turn = 0
+
+    while turn < 10:
         # checks for user inputs to modify control booleans
         for event in pygame.event.get():
-            # exit condition
-            if event.type == pygame.QUIT:
-                pygame.quit()
-            # generation controls
-            elif event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
                     step = True
                 elif event.key == pygame.K_2:
@@ -120,13 +136,21 @@ if __name__ == '__main__':
                 if event.button == 1:
                     raw_x, raw_y = event.pos
                     start_x, start_y = int(raw_x//cell_size), int(raw_y//cell_size)
-                    true_grid[start_y][start_x] = True
-                    draw(screen, (0,255,0), (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
+                    color = (255,0,0)
+                    true_grid[start_y][start_x] = color
+                    draw(screen, color, (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
+                elif event.button == 2:
+                    raw_x, raw_y = event.pos
+                    start_x, start_y = int(raw_x//cell_size), int(raw_y//cell_size)
+                    color = (0,255,0)
+                    true_grid[start_y][start_x] = color
+                    draw(screen, color, (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
                 elif event.button == 3:
                     raw_x, raw_y = event.pos
                     start_x, start_y = int(raw_x//cell_size), int(raw_y//cell_size)
-                    true_grid[start_y][start_x] = False
-                    draw(screen, (255,255,255), (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
+                    color = (0,0,255)
+                    true_grid[start_y][start_x] = color
+                    draw(screen, color, (start_x*cell_size,start_y*cell_size,cell_size,cell_size))
 
         if step or continous:
             screen.fill((100, 100, 100))
@@ -134,8 +158,8 @@ if __name__ == '__main__':
             redrawGrid(screen, true_grid, cell_size)
             step = False
             pygame.time.delay(500)
-
+            turn += 1
         pygame.display.update()
         
-
-    # assignUserActions(grid, canvas, False)
+    totalPercentages(true_grid)
+    pygame.quit()
