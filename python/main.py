@@ -52,18 +52,17 @@ def iterateGeneration(grid):
     for row_count, row in enumerate(grid):
         for col_count, cell in enumerate(row):
             neighbors = neighborCount(grid, row_count, col_count)
-            
-            # birth rule
-            if neighbors == 3:
-                temp_grid[row_count][col_count] = True
-            # death rule
-            elif neighbors <= 1 or neighbors >= 4:
-                temp_grid[row_count][col_count] = False
-            # stay alive rule
-            else:
-                temp_grid[row_count][col_count] = cell
+
+            match neighbors:
+                case 3:
+                    temp_grid[row_count][col_count] = True
+                case n if n <= 1 or n >= 4:
+                    temp_grid[row_count][col_count] = False
+                case _:
+                    temp_grid[row_count][col_count] = cell
+
     grid[:] = temp_grid
-    
+
 def drawInstructions(canvas):
         pen = canvas.turtles()[0]
         pen.penup()
